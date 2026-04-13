@@ -9,7 +9,7 @@ def read_file(file_name):
             for row in reader:
                 name = row['name']
                 l, w, h = int(row['length']), int(row['width']), int(row['height'])
-                data.append((l,w,h))
+                data.append([l,w,h])
 
     except FileNotFoundError:
         print(f"Erreur : Le fichier '{file_name}' est introuvable.")
@@ -17,22 +17,52 @@ def read_file(file_name):
     return data
 
 def compute_UB(data):
-    sum_x = 0
-    sum_y = 0
-    sum_z = 0
-    for i in range(len(data)):
-        sum_x += data[i][0]
-        sum_y += data[i][1]
-        sum_z += data[i][2]
+    for box in data:
+        box.sort()
+    x_min = 1000
+    x_max = 0
+    y_sum = 0
+    z_max = 0
+    for box in data:
+        if (box[0] < x_min):
+            x_min = box[0]
+        if box[0] > x_max:
+            x_max = box[0]
 
-    return sum_x * sum_y * sum_z
+        y_sum += box[1]
+        if box[2] > z_max:
+            z_max = box[2]
+    UB1 = x_max * y_sum *z_max
+    print(x_min, x_max)
+    x_max = 0
+    y_sum = 0
+    z_max = 0
+    for box in data:
+        if box[0] > x_max:
+            x_max = box[0]
+        y_sum += box[2]
+        if box[1] > z_max:
+            z_max = box[1]
+    UB2 = x_max * y_sum *z_max
+    for box in data:
+        if box[1] > x_max:
+            x_max = box[1]
+        y_sum += box[0]
+        if box[2] > z_max:
+            z_max = box[2]
+    UB3 = x_max * y_sum *z_max
+    return min(UB1,min(UB2, UB3))
 
 if __name__ == "__main__":
-    #data = read_file("dataset/random_0050.csv")
-    #print(data)
+    data = read_file("dataset/homo_0050.csv")
+    print(data)
+    UB = compute_UB(data)
+    print(UB)
+    """
     files = [f.name for f in Path('./dataset').glob('*.csv')]
     dossier = Path('./dataset') 
 
     for file in files:
         data = read_file("dataset/" + file)
         print(data)
+        """
